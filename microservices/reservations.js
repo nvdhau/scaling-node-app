@@ -20,9 +20,9 @@ const app = express()
         saveReservations(reservations)
         res.json({ canceled: true, showID, ...reservation })
     })
-    .post('/reserveTickets', (req, res) => {
+    .post('/', (req, res) => {
         const reservations = loadReservations()
-        const shows = loadShows()
+
         let count
         if (!req.body.count) {
             res.status(500)
@@ -32,27 +32,15 @@ const app = express()
             res.status(500)
             return res.json({ error: `A name is required to reserve tickets.`})
         }
-        count = parseInt(req.body.count)
-        show = shows.find(s => s._id === req.body.showID)
-        if (!show) {
+        if (!req.body.showID) {
             res.status(500)
-            return res.json({ error: `Cannot find show with id: ${req.body.showID}`})
-        }
-        const remainingSeats = show.houseSize - show.reserved
-        if (remainingSeats < count) {
-            res.status(500)
-            return res.json({ error: `cannot reserve ${count} seats. Only ${remainingSeats} remaining.`})
+            return res.json({ error: `A showID is required to reserve tickets.`})
         }
 
-        var list = reservations[req.body.showID]
+        count = parseInt(req.body.count)
         var reservation = { name: req.body.name, guests: req.body.count }
-        if (!list) {
-            reservations[req.body.showID] = []
-        }
         reservations[req.body.showID].push(reservation)
-        show.reserved += count
         saveReservations(reservations)
-        saveShows(shows)
         res.json({ success: true, showID: req.body.showID, ...reservation})
     })
     .get('/reservations/:showID', (req, res) => {
@@ -65,4 +53,4 @@ const app = express()
         console.log('reservations returned')
     })
 
-app.listen(3002, () => console.log(`reservations service running on port 3002`))
+app.listen(3002, () => console.log(`reservation service running on port 3002`))
